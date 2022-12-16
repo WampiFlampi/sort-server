@@ -1,17 +1,21 @@
 import Control.Monad
 import Control.Concurrent
+import Control.Exception (bracket)
 import Network.Socket.ByteString (recv, sendAll, send)
 import Network.Socket
 import qualified Data.ByteString.Char8 as C
 
 main :: IO () 
 main = do 
-    sock <- socket AF_INET Stream 0
-    setSocketOption sock ReuseAddr 1
-    bind sock (SockAddrInet 3000 16777343)
-    listen sock 1024
-    loop sock
-    close sock
+    bracket openSock close loop
+
+openSock :: IO Socket
+openSock = do 
+      sock <- socket AF_INET Stream defaultProtocol
+      setSocketOption sock ReuseAddr 1
+      bind sock (SockAddrInet 3000 16777343)
+      listen sock 1024
+      return sock
 
 server :: Socket -> IO ()
 server sock = do
